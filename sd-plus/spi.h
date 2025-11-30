@@ -1,0 +1,91 @@
+/*  SPI library for the Simple SPI controller
+ *
+ *  Written by Dennis van Weeren
+ *  orginally based upon code by Mike Stirling
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#ifndef SPI_H_INCLUDED
+#define SPI_H_INCLUDED
+
+#include <exec/exec.h>
+#include <stdint.h>
+
+// This controller supports hardware accelerated CRC16 computations
+#define SPI_CRC_ACCELERATION_SUPPORTED
+
+// This is the base address of the a500-sd-plus controller
+#define SD_PLUS_BASE_ADDRESS    0x00BFEB01
+
+// SPI speed definitions
+#define SPI_SPEED_SLOW 		    0x00
+#define SPI_SPEED_MEDIUM        0x01
+#define SPI_SPEED_FAST 		    0x02
+
+// Chip select "channels"
+#define SPI_CHANNEL_SD		    0
+#define SPI_CHANNEL_ETHERNET    2
+
+// Number of SD cards supported
+#define SPI_N_SD_CHANNELS       2
+
+// Total number of chip select "channels"
+#define SPI_N_TOTAL_CHANNELS    3
+
+// Set direction of accelerated CRC16 computations
+#define SPI_CRC_MODE_WRITE      0x00
+#define SPI_CRC_MODE_READ       0x01
+
+// The name of the a500-sd-plus resource
+#define SPI_RESOURCE_NAME	    "sd-plus"
+
+//spi resource
+struct spi_resource_t
+{
+	struct Node	node;
+	UBYTE                       pad1;
+    UBYTE                       pad2;
+    UWORD                       pad3;
+    UWORD                       pad4;
+    UWORD                       Version;
+    UWORD                       Revision;
+    struct SignalSemaphore      semaphore;
+	char                        name[sizeof(SPI_RESOURCE_NAME)];
+};
+
+//spi channel structure
+typedef struct
+{
+    struct spi_resource_t       *resource;  // pointer to the SPI resource
+    struct ExecBase             *SysBase;   // pointer to Exec/SysBase
+    UBYTE                       speed;      // bus speed
+    UBYTE                       bus_taken;  // bus status
+    UBYTE                       channel;    // SPI channel (chip_select) to use;
+}spi_t;
+
+//functions
+void spi_obtain(spi_t *spi);
+void spi_release(spi_t *spi);
+void spi_select(spi_t *spi);
+void spi_deselect();
+void spi_set_speed(spi_t *spi, UBYTE speed);
+void spi_read(spi_t *spi, UBYTE *buf, UWORD size);
+void spi_write(spi_t *spi, const UBYTE *buf, UWORD size);
+void spi_crc_reset(uint8_t mode);
+uint16_t spi_crc_read(void);
+int spi_initialize(spi_t *spi, unsigned char channel, struct ExecBase *SysBase);
+void spi_shutdown(spi_t *spi);
+
+#endif
