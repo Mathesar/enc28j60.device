@@ -121,9 +121,7 @@ int main(void)
 
 			do
 			{
-				Forbid();
 				len = nic_recv(&spi, rxbuf, sizeof(rxbuf));
-				Permit();
 				if (len >= 0)
 				{
 					printf("RX %d bytes:\n", len);

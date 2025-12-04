@@ -53,7 +53,7 @@
 
 
 #define ETHERSPI_TASK_NAME        "enc28j60"
-#define ETHERSPI_TASK_PRIO        12
+#define ETHERSPI_TASK_PRIO        6
 #define ETHERSPI_STACK_SIZE       2048
 
 
@@ -189,9 +189,7 @@ void __saveds device_task(void)
                     }
 
                     /* Write */
-                    Forbid();
                     nic_send(&ctx->spi, ctx->frame, ios2->ios2_DataLength + ((ioreq->io_Flags & SANA2IOF_RAW) ? 0 : sizeof(nic_eth_hdr_t)));
-                    Permit();
 
                     /* Reply to message */
                     ioreq->io_Error = 0;
@@ -216,9 +214,7 @@ void __saveds device_task(void)
 			/* Signal from periodic vertical blank interrupt, poll for RX data */
             do
             {
-                Forbid();
                 len = nic_recv(&ctx->spi, ctx->frame, NIC_MTU);
-                Permit();
 
                 if (len >= 0)
                 {
