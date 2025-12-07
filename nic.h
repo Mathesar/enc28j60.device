@@ -38,7 +38,6 @@ typedef struct {
 #pragma pack(pop)
 
 int nic_init(spi_t *spi);
-int nic_poll(spi_t *spi);
 int nic_recv(spi_t *spi, uint8_t *buf, unsigned int length);
 int nic_send(spi_t *spi, const uint8_t *buf, unsigned int length);
 

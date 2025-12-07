@@ -439,21 +439,6 @@ int nic_init(spi_t *spi)
 	return 0;
 }
 
-/// Returns number of packets available for reading
-int nic_poll(spi_t *spi)
-{
-	//obtain SPI bus
-	spi_obtain(spi);
-
-	// Poll for a packet
-	int packet_count = enc28j60_read_reg(spi, EPKTCNT);
-
-	//release SPI bus
-	spi_release(spi);
-
-	return packet_count;
-}
-
 /// Receives next packet, if one is available
 /// \param buf Pointer to a buffer in which to place the received data.
 /// \param length Size of the buffer, in bytes.
