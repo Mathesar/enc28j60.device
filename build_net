@@ -2,6 +2,6 @@ echo "building network driver test program"
 vc nic-test.c vb_interrupt.c vb_interrupt_server.asm enc28j60.c timer.c sd-plus/spi.c sd-plus/spi_low.s -Isd-plus -lamiga -O2 -o /amiga/nic_test
 
 echo "building enc28j60.device"
-vc romtag.asm device.c vb_interrupt.c vb_interrupt_server.asm enc28j60.c timer.c sd-plus/spi.c sd-plus/spi_low.s -Isd-plus  -lamiga -nostdlib -O2 -o /amiga/enc28j60.device
+vc romtag.asm device.c interrupt.asm enc28j60.c timer.c sd-plus/spi.c sd-plus/spi_low.s -Isd-plus  -lamiga -nostdlib -O2 -o /amiga/enc28j60.device
 
 ask "press return to close this window"

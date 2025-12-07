@@ -56,14 +56,16 @@
 #define ETHERSPI_TASK_PRIO        6
 #define ETHERSPI_STACK_SIZE       2048
 
+extern void interrupt_handler(void);
+extern void interrupt_enable(void);
 
 typedef BOOL (*etherspi_bmfunc_t)(__reg("a0") APTR dst, __reg("a1") APTR src, __reg("d0") LONG size);
 
 typedef struct
 {
-    struct MinNode        node;
-    etherspi_bmfunc_t    copyfrom;
-    etherspi_bmfunc_t    copyto;
+    struct MinNode                      node;
+    etherspi_bmfunc_t                   copyfrom;
+    etherspi_bmfunc_t                   copyto;
 } etherspi_buffer_funcs_t;
 
 //make sure all members are aligned at longword boundaries
@@ -71,15 +73,15 @@ typedef struct
 #pragma pack(push,4)
 typedef struct
 {
-	BPTR								saved_seg_list;
-    struct Task							*handler_task;
-    ULONG								tx_signal_mask;
-    LONG								tx_signal;
-    ULONG								rx_signal_mask;
-    LONG								rx_signal;
+	/* Order is important here - some of these fields are used from interrupt.s */
+	struct Task		                    *handler_task;
+	ULONG				                rx_signal_mask;
+	ULONG				                tx_signal_mask;
+	LONG				                rx_signal;
+	LONG				                tx_signal;
 
     struct Device						*device;
-    struct vb_interrupt_data_TYPE	 	*interrupt;
+    struct Interrupt	                interrupt;
 
     volatile struct List				read_list;
     volatile struct List				write_list;
@@ -89,6 +91,7 @@ typedef struct
 
     etherspi_buffer_funcs_t				*bf;
     unsigned char						frame[NIC_MTU + sizeof(nic_eth_hdr_t)];
+    BPTR								saved_seg_list;
     spi_t                               spi;
 } etherspi_ctx_t;
 #pragma pack(pop)
@@ -156,8 +159,11 @@ void __saveds device_task(void)
         int len;
         ULONG sigs;
 
-        /* Wait for signals from driver and vertical blank interrupt server */
-        sigs = Wait(ctx->rx_signal_mask | ctx->tx_signal_mask);
+		/* Enable external interrupt (ISR disables before raising signal to avoid a deadlock) */
+		interrupt_enable();
+
+		/* Wait for signals from driver and ISR */
+		sigs = Wait(ctx->rx_signal_mask | ctx->tx_signal_mask);
 
 		if (sigs & ctx->tx_signal_mask)
 		{
@@ -348,13 +354,10 @@ static struct Device *init_device(__reg("a6") struct ExecBase *sys_base, __reg("
     /* Start receiver task */
 	ctx->handler_task = CreateTask((char *)ETHERSPI_TASK_NAME, ETHERSPI_TASK_PRIO, (char *)device_task, ETHERSPI_STACK_SIZE);
 
-	/* Register VB interrupt server */
-	ctx->interrupt = Start_Vb_Interrupt(ctx->handler_task, ctx->rx_signal);
-	if(ctx->interrupt == NULL)
-	{
-		ERROR("Failed to install interrupt server\n");
-		goto error;
-	}
+	/* Register /INT2 handler */
+	ctx->interrupt.is_Data = ctx;
+	ctx->interrupt.is_Code = interrupt_handler;
+	AddIntServer(INTB_PORTS, &ctx->interrupt);
 
     /* Return success */
     return device;
@@ -380,9 +383,7 @@ static BPTR expunge(__reg("a6") struct Library *dev)
     {
         seg_list = ctx->saved_seg_list;
 
-        /* stop VB interrupt server */
-        if(ctx->interrupt)
-       	   Stop_Vb_Interrupt(ctx->interrupt);
+        RemIntServer(INTB_PORTS, &ctx->interrupt);
 
         /* stop handler task */
 		if(ctx->handler_task)

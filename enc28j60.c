@@ -421,9 +421,9 @@ int nic_init(spi_t *spi)
 #endif
 
 	// Enable receive and link status interrupts
-//  enc28j60_write_phy(spi, PHIE, PHIE_PGEIE | PHIE_PLNKIE);
-//	enc28j60_clear_bits(spi, EIR, EIR_DMAIF | EIR_LINKIF | EIR_TXIF | EIR_TXERIF | EIR_RXERIF | EIR_PKTIF);
-//	enc28j60_set_bits(spi, EIE, EIE_INTIE /*| EIE_LINKIE */| EIE_PKTIE);
+    enc28j60_write_phy(spi, PHIE, PHIE_PGEIE | PHIE_PLNKIE);
+	enc28j60_clear_bits(spi, EIR, EIR_DMAIF | EIR_LINKIF | EIR_TXIF | EIR_TXERIF | EIR_RXERIF | EIR_PKTIF);
+	enc28j60_set_bits(spi, EIE, EIE_INTIE /*| EIE_LINKIE */| EIE_PKTIE);
 
 	// Enable packet reception
 	enc28j60_set_bits(spi, ECON2, ECON2_AUTOINC | ECON2_VRPS);
