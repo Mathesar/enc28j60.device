@@ -46,9 +46,9 @@
  * remember to also change VERSION constant in romtag.asm
  */
 #define DEVICE_NAME		 		"enc28j60.device"
-#define DEVICE_ID_STRING		"enc28j60 0.4 (30 November 2025)"
-#define DEVICE_VERSION			0 /* also see romtag.asm */
-#define DEVICE_REVISION			4
+#define DEVICE_ID_STRING		"enc28j60 1.0 (10 December 2025)"
+#define DEVICE_VERSION			1 /* also see romtag.asm */
+#define DEVICE_REVISION			0
 /* END of name/id/version/revision */
 
 
