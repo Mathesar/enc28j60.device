@@ -377,38 +377,43 @@ error:
 
 static BPTR expunge(__reg("a6") struct Library *dev)
 {
-    BPTR seg_list;
 
-    if (ctx)
-    {
-        seg_list = ctx->saved_seg_list;
+    /* Don't expunge until I figure out how to do it properly */
+    dev->lib_Flags |= LIBF_DELEXP;
+    return 0;
 
-        RemIntServer(INTB_PORTS, &ctx->interrupt);
-
-        /* stop handler task */
-		if(ctx->handler_task)
-    		DeleteTask(ctx->handler_task);
-
-        /* Free context memory */
-        FreeMem(ctx, sizeof(etherspi_ctx_t));
-        ctx = NULL;
-    }
-
-    /* stop spi */
-    spi_shutdown(&ctx->spi);
-
-    /* Clean up libs */
-    if (UtilityBase)
-    {
-        CloseLibrary((struct Library*)UtilityBase);
-    }
-
-    if (DOSBase)
-    {
-        CloseLibrary((struct Library*)DOSBase);
-    }
-
-    return seg_list;
+//    BPTR seg_list;
+//
+//    if (ctx)
+//    {
+//        seg_list = ctx->saved_seg_list;
+//
+//        RemIntServer(INTB_PORTS, &ctx->interrupt);
+//
+//        /* stop handler task */
+//		if(ctx->handler_task)
+//    		DeleteTask(ctx->handler_task);
+//
+//        /* Free context memory */
+//        FreeMem(ctx, sizeof(etherspi_ctx_t));
+//        ctx = NULL;
+//    }
+//
+//    /* stop spi */
+//    spi_shutdown(&ctx->spi);
+//
+//    /* Clean up libs */
+//    if (UtilityBase)
+//    {
+//        CloseLibrary((struct Library*)UtilityBase);
+//    }
+//
+//    if (DOSBase)
+//    {
+//        CloseLibrary((struct Library*)DOSBase);
+//    }
+//
+//    return seg_list;
 }
 
 static void open(__reg("a6") struct Library *dev, __reg("a1") struct IORequest *ioreq, __reg("d0") ULONG unit, __reg("d1") ULONG flags)
